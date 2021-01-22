@@ -1,0 +1,50 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.3"
+    container_name: "traefik"
+    command:
+      - "--api.dashboard=true"  
+      - "--log.level=DEBUG"
+      - "--api=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.traefik.address=:8080"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=446897682@qq.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # - "--tracing.zipkin"
+      # - "--tracing.zipkin.httpendpoint=http://172.16.1.13/api/v2/spans"
+      
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels: 
+      - "traefik.enable=true"  
+      - "traefik.http.routers.api.rule=Host(`traefik.ds.cc`)||Host(`traefik.ds.cc`)"
+      - "traefik.http.routers.api.service=api@internal"  
+
+  default: 
+    image: "remotework:latest"
+    container_name: "default"
+    labels: 
+      - "traefik.enable=true"
+      - "traefik.http.routers.default.rule=Host(`s.w7.cc`)|| Host(`order.w7.cc`)||Host(`wo.w7.cc`)||Host(`user.w7.cc`)||Host(`dev.w7.cc`)||Host(`admin.w7.cc`)||PathPrefix(`/phpmyadmin`)"
+      - "traefik.http.routers.default.entrypoints=web"
+      - "traefik.http.middlewares.traefik.redirectregex.regex=^http://172.16.1.13/phpmyadmin/(.*)"
+      - "traefik.http.middlewares.traefik.redirectregex.replacement=http://172.16.1.13:3333/"
+    volumes: 
+      - "/home/wwwroot:/home/wwwroot"  
+      - "/home/we7team/lnmp/vhost:/usr/local/nginx/conf/vhost"  

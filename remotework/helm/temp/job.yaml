@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name:  hello
+spec:
+  template:
+    metadata:
+      name:  hello
+    spec:
+      restartPolicy: OnFailure
+      volumes:
+        - name: project
+          hostPath:
+            path: "/home/afan/Workspace"
+            type: DirectoryOrCreate
+      containers: 
+         - name:  'hello'
+           image: "remotework:latest"
+           imagePullPolicy: "Never"
+           command: ["./work.sh"]
+           volumeMounts:
+            - mountPath: /home
+              name: project
+          

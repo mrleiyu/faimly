@@ -1,0 +1,23 @@
+FROM ccr.ccs.tencentyun.com/w7team/swoole:fpm
+
+MAINTAINER yuanwentao <we7team@qq.com>
+
+ENV WEB_SITE /home
+ENV WEB_PATH /home
+
+ADD . $WEB_PATH
+
+WORKDIR $WEB_PATH
+
+RUN rm -f Dockerfile \
+#    && composer install && composer clearcache \
+    && mkdir -p  /usr/local/nginx/conf/vhost \
+    && chown -R www:www $WEB_PATH \
+    && chmod -R 755 $WEB_PATH \
+    && mv ./vhost/** /usr/local/nginx/conf/vhost/ \
+    && mv ./php.ini /usr/local/etc/php.ini \
+    && mv ./start.sh /start.sh \
+    && mv ./custom.conf /usr/local/etc/php-fpm.conf
+
+ENTRYPOINT [ "/start.sh" ]
+EXPOSE 80
